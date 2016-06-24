@@ -70,16 +70,20 @@ brexitdata$totalpopnotukpct <- (brexitdata$totalpop-brexitdata$totalpopuk)/brexi
 # SCATTERPLOTTS DER BEZIEHUNGEN
 # ============================================================================ #
 
-brexithohebildung <- ggplot(brexitdata, aes(x=remainpct, y=hohebildungpct)) +
+
+brexitdata$lessthan50 = brexitdata$remainpct<50;
+
+brexithohebildung <- ggplot(brexitdata, aes(x=remainpct, y=hohebildungpct, color=lessthan50)) +
   geom_point(alpha=1/2) + 
-  geom_smooth(method=lm)  +
+#  geom_smooth(method=lm)  +
   scale_y_continuous(labels = percent) +
   labs(x = "Stimmenanteil für Remain", y = "Bildungsgrad") +
   ggtitle("Je höher der Bildungsgrad,\ndesto mehr für EU-Verbleib") +
-  scale_color_manual(name = "remainpct",
-                     values = c("(0,50]" = "red",
-                                "(50,100]" = "blue"),
-                     labels = c("<= 50", "> 50"))+
+#  scale_color_manual(name = "remainpct",
+#                     values = c("(0,50]" = "red",
+#                                "(50,100]" = "blue"),
+#                     labels = c("<= 50", "> 50"))+
+  guides(color=FALSE)
   theme
 plot(brexithohebildung)
 
