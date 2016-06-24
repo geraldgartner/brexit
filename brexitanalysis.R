@@ -12,6 +12,8 @@ library(grid)
 library(extrafont)
 library(corrplot)
 
+options(scipen=999)
+
 #Unser Style
 
 
@@ -74,7 +76,8 @@ brexitdata$totalpopnotukpct <- (brexitdata$totalpop-brexitdata$totalpopuk)/brexi
 brexitdata$lessthan50 = brexitdata$remainpct<50;
 
 brexithohebildung <- ggplot(brexitdata, aes(x=remainpct, y=hohebildungpct, color=lessthan50)) +
-  geom_point(alpha=1/2) + 
+  geom_point(alpha=1/2, aes(size=electorate)) + 
+  scale_size_continuous(range = c(0.1,4)) +
 #  geom_smooth(method=lm)  +
   scale_y_continuous(labels = percent) +
   labs(x = "Stimmenanteil für Remain", y = "Bildungsgrad") +
@@ -86,6 +89,8 @@ brexithohebildung <- ggplot(brexitdata, aes(x=remainpct, y=hohebildungpct, color
   guides(color=FALSE)
   theme
 plot(brexithohebildung)
+
+
 
 #af040a rot
 #1f77b4 blau
