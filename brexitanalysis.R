@@ -38,3 +38,52 @@ brexit <- gs_key('1DowYpzqqCp_yUiqLVBzlRNrcYJQLqHV82U3bomM_LUk')
 #Alle Worksheets aus dem GSheet importieren
 
 brexitdata <- gs_read(brexit, ws = 'data', col_names = TRUE)
+
+#Tidying
+
+brexitdata$leavepct <- as.numeric(brexitdata$leavepct)
+brexitdata$age <- as.numeric(brexitdata$age)
+brexitdata$totalpop <- as.numeric(brexitdata$totalpop)
+brexitdata$totalpopuk <- as.numeric(brexitdata$totalpopuk)
+brexitdata$totalbildund <- as.numeric(brexitdata$totalbildund)
+
+brexitdata$ohnebildung <- as.numeric(brexitdata$ohnebildung)
+brexitdata$hohebildung <- as.numeric(brexitdata$hohebildung)
+brexitdata$incomeperweek <- as.numeric(brexitdata$incomeperweek)
+brexitdata$electorate <- as.numeric(brexitdata$electorate)
+
+brexitdata$validvotes <- as.numeric(brexitdata$validvotes)
+brexitdata$remain <- as.numeric(brexitdata$remain)
+brexitdata$leave <- as.numeric(brexitdata$leave)
+brexitdata$electorate <- as.numeric(brexitdata$electorate)
+
+#New Columns
+
+brexitdata$ohnebildungpct <- brexitdata$ohnebildung/brexitdata$totalbildund
+brexitdata$hohebildungpct <- brexitdata$hohebildung/brexitdata$totalbildund
+brexitdata$totalpopukpct <- brexitdata$totalpopuk/brexitdata$totalpop
+brexitdata$totalpopnotukpct <- (brexitdata$totalpop-brexitdata$totalpopuk)/brexitdata$totalpop
+
+#Charting
+
+# ============================================================================ #
+# SCATTERPLOTTS DER BEZIEHUNGEN
+# ============================================================================ #
+
+brexithohebildung <- ggplot(brexitdata, aes(x=remainpct, y=hohebildungpct)) +
+  geom_point(alpha=1/2) + 
+  geom_smooth(method=lm)  +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Stimmenanteil für Remain", y = "Bildungsgrad") +
+  ggtitle("Je höher der Bildungsgrad,\ndesto mehr für EU-Verbleib") +
+  scale_color_manual(name = "remainpct",
+                     values = c("(0,50]" = "red",
+                                "(50,100]" = "blue"),
+                     labels = c("<= 50", "> 50"))+
+  theme
+plot(brexithohebildung)
+
+#af040a rot
+#1f77b4 blau
+
+
