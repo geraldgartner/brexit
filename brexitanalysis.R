@@ -11,6 +11,7 @@ library(scales)
 library(grid)
 library(extrafont)
 library(corrplot)
+library(ggrepel)
 
 options(scipen=999)
 
@@ -65,6 +66,8 @@ brexitdata$ohnebildungpct <- brexitdata$ohnebildung/brexitdata$totalbildund
 brexitdata$hohebildungpct <- brexitdata$hohebildung/brexitdata$totalbildund
 brexitdata$totalpopukpct <- brexitdata$totalpopuk/brexitdata$totalpop
 brexitdata$totalpopnotukpct <- (brexitdata$totalpop-brexitdata$totalpopuk)/brexitdata$totalpop
+brexitdata$remainpctdez <- brexitdata$remainpct/100
+brexitdata$leavepctdez <- brexitdata$leavepct/100
 
 #Charting
 
@@ -72,27 +75,151 @@ brexitdata$totalpopnotukpct <- (brexitdata$totalpop-brexitdata$totalpopuk)/brexi
 # SCATTERPLOTTS DER BEZIEHUNGEN
 # ============================================================================ #
 
+#Bildungsplot hoch
 
 brexitdata$lessthan50 = brexitdata$remainpct<50;
 
-brexithohebildung <- ggplot(brexitdata, aes(x=remainpct, y=hohebildungpct, color=lessthan50)) +
-  geom_point(alpha=1/2, aes(size=electorate)) + 
-  scale_size_continuous(range = c(0.1,4)) +
+brexithohebildung <- ggplot(brexitdata, aes(x=remainpctdez, y=hohebildungpct, color=lessthan50)) +
+  geom_point(alpha=0.7, aes(size=electorate)) + 
+  scale_size_continuous(range = c(0.1,5)) +
 #  geom_smooth(method=lm)  +
-  scale_y_continuous(labels = percent) +
-  labs(x = "Stimmenanteil für Remain", y = "Bildungsgrad") +
-  ggtitle("Je höher der Bildungsgrad,\ndesto mehr für EU-Verbleib") +
-#  scale_color_manual(name = "remainpct",
-#                     values = c("(0,50]" = "red",
-#                                "(50,100]" = "blue"),
-#                     labels = c("<= 50", "> 50"))+
-  guides(color=FALSE)
+  scale_y_continuous(labels = percent, breaks = pretty(brexitdata$hohebildungpct, n = 3)) +
+  scale_x_continuous(labels = percent, breaks = pretty(brexitdata$remainpctdez, n = 5))+
+  scale_color_manual(values=c("FALSE" = "#1f77b4","TRUE" = "#af040a"))+
+  labs(x = "Stimmenanteil für Remain", y = "Anteil der Bürger mit\n Hochschulabschluss") +
+  ggtitle("Je höher der Bildungsgrad,\ndesto eher für EU-Verbleib") +
+  guides(color=FALSE) +
+  theme(legend.position="none")+
+  geom_text_repel(data=filter(brexitdata, hohebildungpct>0.55), aes(label=area),
+                  box.padding = unit(1, "lines"),
+                  point.padding = unit(1, "lines"))+
   theme
 plot(brexithohebildung)
 
-
+ggsave("brexithohebildung.pdf", dpi = 300)
+quartz.save("brexithohebildung.png", type = "png", device = dev.cur(), dpi = 100)
 
 #af040a rot
 #1f77b4 blau
 
+
+#Bildung ohne formalen Abschluss
+brexitohnebildung <- ggplot(brexitdata, aes(x=leavepctdez, y=ohnebildungpct, color=lessthan50)) +
+  geom_point(alpha=0.7, aes(size=electorate)) + 
+  scale_size_continuous(range = c(0.1,5)) +
+  #  geom_smooth(method=lm)  +
+  scale_y_continuous(limits=c(0, 0.4),labels = percent, breaks = pretty(brexitdata$ohnebildungpct, n = 3)) +
+  scale_x_continuous(labels = percent, breaks = pretty(brexitdata$leavepctdez, n = 5))+
+  scale_color_manual(values=c("FALSE" = "#1f77b4","TRUE" = "#af040a"))+
+  labs(x = "Stimmenanteil für 'Leave'", y = "Anteil der Bürger ohne\n formalen Abschluss") +
+  ggtitle("Je niedriger der Bildungsgrad,\ndesto eher für EU-Austritt") +
+  guides(color=FALSE) +
+  theme(legend.position="none")+
+  geom_text_repel(data=filter(brexitdata, ohnebildungpct>0.55), aes(label=area),
+                  box.padding = unit(1, "lines"),
+                  point.padding = unit(1, "lines"))+
+  theme
+plot(brexitohnebildung)
+
+#Check der Korrelationen
+
+#OHne Ausbildung
+x <- brexitdata$leavepct
+y <- brexitdata$ohnebildungpct
+cor(x, y)
+
+#Hoher Bildungsabschluss
+z <- brexitdata$remainpct
+y <- brexitdata$hohebildungpct
+cor(z, y)
+
+#Uk Residents
+u <- brexitdata$totalpopukpct
+cor(x,u)
+
+#non Uk Residents
+notuk <- brexitdata$totalpopnotukpct
+cor(x,notuk)
+
+#age
+age <- brexitdata$age
+cor(x,age)
+
+#income per week
+inc <- brexitdata$incomeperweek
+cor(inc, z, use = "complete")
+
+
+
+#Bildung ohne formalen Abschluss
+brexitohnebildung <- ggplot(brexitdata, aes(x=leavepctdez, y=ohnebildungpct, color=lessthan50)) +
+  geom_point(alpha=0.7, aes(size=electorate)) + 
+  scale_size_continuous(range = c(0.1,5)) +
+  #  geom_smooth(method=lm)  +
+  scale_y_continuous(limits=c(0, 0.4),labels = percent, breaks = pretty(brexitdata$ohnebildungpct, n = 3)) +
+  scale_x_continuous(labels = percent, breaks = pretty(brexitdata$leavepctdez, n = 5))+
+  scale_color_manual(values=c("FALSE" = "#1f77b4","TRUE" = "#af040a"))+
+  labs(x = "Stimmenanteil für 'Leave'", y = "Anteil der Bürger ohne\n formalen Abschluss") +
+  ggtitle("Je niedriger der Bildungsgrad,\ndesto eher für EU-Austritt") +
+  guides(color=FALSE) +
+  theme(legend.position="none")+
+  geom_text_repel(data=filter(brexitdata, ohnebildungpct>0.55), aes(label=area),
+                  box.padding = unit(1, "lines"),
+                  point.padding = unit(1, "lines"))+
+  theme
+plot(brexitohnebildung)
+
+#Einkommen
+brexitincome <- ggplot(brexitdata, aes(x=remainpctdez, y=incomeperweek, color=lessthan50)) +
+  geom_point(alpha=0.7, aes(size=electorate)) + 
+  scale_size_continuous(range = c(0.1,5)) +
+  #  geom_smooth(method=lm)  +
+  scale_y_continuous(limits=c(350, 900), breaks = pretty(brexitdata$incomeperweek, n = 3)) +
+  scale_x_continuous(labels = percent, breaks = pretty(brexitdata$remainpctdez, n = 5))+
+  scale_color_manual(values=c("FALSE" = "#1f77b4","TRUE" = "#af040a"))+
+  labs(x = "Stimmenanteil für 'Remain'", y = "Medianeinkommen pro Woche in £") +
+  ggtitle("Je höher das Einkommen,\ndesto eher für EU-Verbleib") +
+  guides(color=FALSE) +
+  theme(legend.position="none")+
+  geom_text_repel(data=filter(brexitdata, incomeperweek>1000), aes(label=area),
+                  box.padding = unit(1, "lines"),
+                  point.padding = unit(1, "lines"))+
+  theme
+plot(brexitincome)
+
+#Brexit NOT-UK-Resident
+brexitnotukresidents <- ggplot(brexitdata, aes(x=remainpctdez, y=totalpopnotukpct, color=lessthan50)) +
+  geom_point(alpha=0.7, aes(size=electorate)) + 
+  scale_size_continuous(range = c(0.1,5)) +
+  #  geom_smooth(method=lm)  +
+  scale_y_continuous(limits=c(0, 0.6),labels = percent, breaks = pretty(brexitdata$totalpopnotukpct, n = 5)) +
+  scale_x_continuous(labels = percent, breaks = pretty(brexitdata$remainpctdez, n = 5))+
+  scale_color_manual(values=c("FALSE" = "#1f77b4","TRUE" = "#af040a"))+
+  labs(x = "Stimmenanteil für 'Remain'", y = "Anteil der im Ausland Geborenen") +
+  ggtitle("Je internationaler die Bevölkerung,\ndesto eher für EU-Verbleib") +
+  guides(color=FALSE) +
+  theme(legend.position="none")+
+  geom_text_repel(data=filter(brexitdata, totalpopnotukpct>0.52), aes(label=area),
+                  box.padding = unit(0.51, "lines"),
+                  point.padding = unit(1, "lines"))+
+  theme
+plot(brexitnotukresidents)
+
+#Brexit age
+brexitage <- ggplot(brexitdata, aes(x=leavepctdez, y=age, color=lessthan50)) +
+  geom_point(alpha=0.7, aes(size=electorate)) + 
+  scale_size_continuous(range = c(0.1,5)) +
+  #  geom_smooth(method=lm)  +
+  scale_y_continuous(limits=c(25, 55), breaks = pretty(brexitdata$age, n = 5)) +
+  scale_x_continuous(labels = percent, breaks = pretty(brexitdata$leavepctdez, n = 5))+
+  scale_color_manual(values=c("FALSE" = "#1f77b4","TRUE" = "#af040a"))+
+  labs(x = "Stimmenanteil für 'Leave'", y = "Median-Alter des Bezirkes") +
+  ggtitle("Je älter die Bevölkerung,\ndesto eher für EU-Austritt") +
+  guides(color=FALSE) +
+  theme(legend.position="none")+
+  geom_text_repel(data=filter(brexitdata, age>50), aes(label=area),
+                  box.padding = unit(0.51, "lines"),
+                  point.padding = unit(1, "lines"))+
+  theme
+plot(brexitage)
 
